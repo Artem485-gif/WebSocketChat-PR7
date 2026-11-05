@@ -1,0 +1,418 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Chat</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: #eeeef3;
+            font-family: Arial, sans-serif;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 460px;
+            height: 680px;
+            max-height: 90vh;
+            background: #fff;
+            border: 2px solid #383838;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .header {
+            height: 65px;
+            min-height: 65px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #7563b7;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            border-radius: 50%;
+            background: #7765bb;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .header-right {
+            color: #777;
+            font-size: 23px;
+        }
+
+        .connection {
+            padding: 9px 18px;
+            font-size: 12px;
+            color: #777;
+            background: #fafafa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .connection span {
+            color: #d9534f;
+            font-weight: bold;
+        }
+
+        .connection.connected span {
+            color: #279b64;
+        }
+
+        .username-area {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .username-area input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: #f3f3f6;
+            padding: 10px 13px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 18px 13px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            max-width: 90%;
+        }
+
+        .message-row.own {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-row.other {
+            align-self: flex-start;
+        }
+
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+        }
+
+        .bubble {
+            padding: 11px 14px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+
+        .other .bubble {
+            background: #ededf0;
+            color: #333;
+            border-bottom-left-radius: 3px;
+        }
+
+        .own .bubble {
+            background: #7967bd;
+            color: white;
+            border-bottom-right-radius: 3px;
+        }
+
+        .message-name {
+            font-size: 11px;
+            color: #777;
+            padding: 0 5px;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: #999;
+            padding: 0 5px;
+        }
+
+        .own .message-name,
+        .own .message-time {
+            text-align: right;
+        }
+
+        .message-row .avatar {
+            width: 29px;
+            height: 29px;
+            min-width: 29px;
+            font-size: 12px;
+        }
+
+        .empty {
+            margin: auto;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .footer {
+            padding: 12px 14px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-top: 1px solid #eee;
+            background: #fff;
+        }
+
+        .footer input {
+            flex: 1;
+            min-width: 0;
+            padding: 13px 15px;
+            border: none;
+            outline: none;
+            border-radius: 20px;
+            background: #f0f0f2;
+            font-size: 14px;
+        }
+
+        .send-button {
+            width: 43px;
+            height: 43px;
+            min-width: 43px;
+            border: none;
+            border-radius: 50%;
+            background: #7967bd;
+            color: white;
+            font-size: 21px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .send-button:hover {
+            background: #604da5;
+        }
+
+        .send-button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 0;
+            }
+
+            .chat-container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+    <header class="header">
+        <div class="profile">
+            <div class="avatar">P</div>
+            <span>Profile Chat</span>
+        </div>
+        
+    </header>
+
+    <div class="connection" id="connection">
+        Статус: <span id="status">Підключення...</span>
+    </div>
+
+    <div class="username-area">
+        <input
+            type="text"
+            id="username"
+            placeholder="Введіть ваше ім'я"
+            maxlength="30"
+        >
+    </div>
+
+    <main class="messages" id="messages">
+        <div class="empty" id="empty">
+            Поки що повідомлень немає.<br>
+            Напишіть перше повідомлення!
+        </div>
+    </main>
+
+    <footer class="footer">
+        <input
+            type="text"
+            id="messageInput"
+            placeholder="Напишіть повідомлення..."
+            maxlength="1000"
+        >
+
+        <button
+            class="send-button"
+            id="sendButton"
+            title="Надіслати повідомлення"
+            disabled
+        >➤</button>
+    </footer>
+
+</div>
+
+<script>
+    const socket = new WebSocket('ws://localhost:8080');
+
+    const statusElement = document.getElementById('status');
+    const connectionElement = document.getElementById('connection');
+    const messagesElement = document.getElementById('messages');
+    const usernameInput = document.getElementById('username');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    socket.onopen = () => {
+        statusElement.textContent = 'Підключено';
+        connectionElement.classList.add('connected');
+        sendButton.disabled = false;
+    };
+
+    socket.onmessage = (event) => {
+        try {
+            const response = JSON.parse(event.data);
+
+            if (response.type === 'messages') {
+                displayMessages(response.data);
+            }
+
+            if (response.type === 'error') {
+                alert(response.message);
+            }
+        } catch (error) {
+            console.error('Помилка обробки повідомлення:', error);
+        }
+    };
+
+    socket.onclose = () => {
+        statusElement.textContent = 'Відключено';
+        connectionElement.classList.remove('connected');
+        sendButton.disabled = true;
+    };
+
+    socket.onerror = () => {
+        statusElement.textContent = 'Помилка з’єднання';
+    };
+
+    function sendMessage() {
+        const username = usernameInput.value.trim();
+        const text = messageInput.value.trim();
+
+        if (!username || !text) {
+            alert('Введіть ім’я та текст повідомлення!');
+            return;
+        }
+
+        if (socket.readyState !== WebSocket.OPEN) {
+            alert('Немає з’єднання із сервером!');
+            return;
+        }
+
+        socket.send(JSON.stringify({
+            action: 'addMessage',
+            username: username,
+            text: text
+        }));
+
+        messageInput.value = '';
+        messageInput.focus();
+    }
+
+    function displayMessages(messages) {
+        messagesElement.replaceChildren();
+
+        if (messages.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty';
+            empty.textContent = 'Поки що повідомлень немає. Напишіть перше повідомлення!';
+            messagesElement.appendChild(empty);
+            return;
+        }
+
+        messages.forEach((message) => {
+            const isOwn = message.username === usernameInput.value.trim();
+
+            const row = document.createElement('div');
+            row.className = 'message-row ' + (isOwn ? 'own' : 'other');
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = message.username.charAt(0).toUpperCase();
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+
+            const name = document.createElement('div');
+            name.className = 'message-name';
+            name.textContent = message.username;
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = message.text;
+
+            const time = document.createElement('div');
+            time.className = 'message-time';
+            time.textContent = message.time;
+
+            content.append(name, bubble, time);
+            row.append(avatar, content);
+            messagesElement.appendChild(row);
+        });
+
+        messagesElement.scrollTop = messagesElement.scrollHeight;
+    }
+
+    sendButton.addEventListener('click', sendMessage);
+
+    messageInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>
+
